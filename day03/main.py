@@ -32,10 +32,10 @@ def part1(input_data: list[str]) -> str:
         {"line": input_data}
     ).with_row_index().lazy().with_columns(
         pl.col("line").str.split("").cast(pl.List(pl.Int32)).alias("digits")
-    ).group_by("index", "digits").agg(
-        pl.col("digits").list.slice(0, pl.col("digits").list.len() - 1).list.explode().cum_max().implode().alias("first_digits"),
-    ).group_by("index", "digits", "first_digits").agg(
-        pl.col("digits").list.slice(pl.col("first_digits").list.arg_max() + 1).list.explode().cum_max().implode().alias("second_digits")
+    ).with_columns(
+        pl.col("digits").list.slice(0, pl.col("digits").list.len() - 1).list.explode().cum_max().implode().over("index").alias("first_digits"),
+    ).with_columns(
+        pl.col("digits").list.slice(pl.col("first_digits").list.arg_max() + 1).list.explode().cum_max().implode().over("index").alias("second_digits")
     ).with_columns(
         pl.concat_str(
             pl.col("first_digits").list.max(),
@@ -51,65 +51,95 @@ def part1(input_data: list[str]) -> str:
 @timer()
 def part2(input_data: list[str]) -> str:
 
-        df = pl.DataFrame(
+    joltage_len = 12
+
+    df = pl.DataFrame(
         {"line": input_data}
     ).with_row_index().lazy().with_columns(
         pl.col("line").str.split("").cast(pl.List(pl.Int32)).alias("digits")
-    ).group_by("index", "digits").agg(
-        pl.col("digits").list.slice(0, pl.col("digits").list.len() - 1).list.explode().cum_max().implode().alias("first_digits"),
-    ).group_by("index", "digits", "first_digits").agg(
-        pl.col("digits").list.slice(pl.col("first_digits").list.arg_max() + 1).list.explode().cum_max().implode().alias("second_digits")
+    ).with_columns(
+        pl.col("digits").list.slice(
+            0, 
+            pl.col("digits").list.len() - (joltage_len - 1)
+        ).list.explode().cum_max().implode().over("index").alias("first_digits"),
+    ).with_columns(
+        (pl.col("digits").list.len() - (joltage_len - 2)).alias("second_length"),
+        (pl.min_horizontal(pl.col("digits").list.len() - (joltage_len - 2), 2 - pl.col("first_digits").list.arg_max() + 2)).alias("second_length_corrected"),
+        pl.col("digits").list.slice(
+            pl.col("first_digits").list.arg_max() + 1, 
+            # pl.min_horizontal(pl.col("digits").list.len() - (joltage_len - 2), pl.col("digits").list.len() - (2 + 1))
+            (pl.min_horizontal(pl.col("digits").list.len() - (joltage_len - 2), 2 - pl.col("first_digits").list.arg_max() + 2)),
+        ).list.explode().cum_max().implode().over("index").alias("second_digits")
+    ).with_columns(
+        pl.col("digits").list.slice(
+            pl.col("first_digits").list.arg_max() + pl.col("second_digits").list.arg_max() + 2, 
+            pl.col("digits").list.len() - (joltage_len - 3)
+        ).list.explode().cum_max().implode().over("index").alias("third_digits")
+    ).with_columns(
+        pl.col("digits").list.slice(
+            pl.col("first_digits").list.arg_max() + pl.col("second_digits").list.arg_max() + pl.col("third_digits").list.arg_max() + 3,
+            pl.col("digits").list.len() - (joltage_len - 4)
+        ).list.explode().cum_max().implode().over("index").alias("fourth_digits")
+    ).with_columns(
+        pl.col("digits").list.slice(
+            pl.col("first_digits").list.arg_max() + pl.col("second_digits").list.arg_max() + pl.col("third_digits").list.arg_max() + pl.col("fourth_digits").list.arg_max() + 4,
+            pl.col("digits").list.len() - (joltage_len - 5)
+        ).list.explode().cum_max().implode().over("index").alias("fifth_digits")
+    ).with_columns(
+        pl.col("digits").list.slice(
+            pl.col("first_digits").list.arg_max() + pl.col("second_digits").list.arg_max() + pl.col("third_digits").list.arg_max() + pl.col("fourth_digits").list.arg_max() + pl.col("fifth_digits").list.arg_max() + 5,
+            pl.col("digits").list.len() - (joltage_len - 6)
+        ).list.explode().cum_max().implode().over("index").alias("sixth_digits")
+    ).with_columns(
+        pl.col("digits").list.slice(
+            pl.col("first_digits").list.arg_max() + pl.col("second_digits").list.arg_max() + pl.col("third_digits").list.arg_max() + pl.col("fourth_digits").list.arg_max() + pl.col("fifth_digits").list.arg_max() + pl.col("sixth_digits").list.arg_max() + 6,
+            pl.col("digits").list.len() - (joltage_len - 7)
+        ).list.explode().cum_max().implode().over("index").alias("seventh_digits")
+    ).with_columns(
+        pl.col("digits").list.slice(
+            pl.col("first_digits").list.arg_max() + pl.col("second_digits").list.arg_max() + pl.col("third_digits").list.arg_max() + pl.col("fourth_digits").list.arg_max() + pl.col("fifth_digits").list.arg_max() + pl.col("sixth_digits").list.arg_max() + pl.col("seventh_digits").list.arg_max() + 7,
+            pl.col("digits").list.len() - (joltage_len - 8)
+        ).list.explode().cum_max().implode().over("index").alias("eigth_digits")
+    ).with_columns(
+        pl.col("digits").list.slice(
+            pl.col("first_digits").list.arg_max() + pl.col("second_digits").list.arg_max() + pl.col("third_digits").list.arg_max() + pl.col("fourth_digits").list.arg_max() + pl.col("fifth_digits").list.arg_max() + pl.col("sixth_digits").list.arg_max() + pl.col("seventh_digits").list.arg_max() + pl.col("eigth_digits").list.arg_max() + 8,
+            pl.col("digits").list.len() - (joltage_len - 9)
+        ).list.explode().cum_max().implode().over("index").alias("nineth_digits")
+    ).with_columns(
+        pl.col("digits").list.slice(
+            pl.col("first_digits").list.arg_max() + pl.col("second_digits").list.arg_max() + pl.col("third_digits").list.arg_max() + pl.col("fourth_digits").list.arg_max() + pl.col("fifth_digits").list.arg_max() + pl.col("sixth_digits").list.arg_max() + pl.col("seventh_digits").list.arg_max() + pl.col("eigth_digits").list.arg_max() + pl.col("nineth_digits").list.arg_max() + 9,
+            pl.col("digits").list.len() - (joltage_len - 10)
+        ).list.explode().cum_max().implode().over("index").alias("tenth_digits")
+    ).with_columns(
+        pl.col("digits").list.slice(
+            pl.col("first_digits").list.arg_max() + pl.col("second_digits").list.arg_max() + pl.col("third_digits").list.arg_max() + pl.col("fourth_digits").list.arg_max() + pl.col("fifth_digits").list.arg_max() + pl.col("sixth_digits").list.arg_max() + pl.col("seventh_digits").list.arg_max() + pl.col("eigth_digits").list.arg_max() + pl.col("nineth_digits").list.arg_max() + pl.col("tenth_digits").list.arg_max() + 10,
+            pl.col("digits").list.len() - (joltage_len - 11)
+        ).list.explode().cum_max().implode().over("index").alias("eleventh_digits")
+    ).with_columns(
+        pl.col("digits").list.slice(
+            pl.col("first_digits").list.arg_max() + pl.col("second_digits").list.arg_max() + pl.col("third_digits").list.arg_max() + pl.col("fourth_digits").list.arg_max() + pl.col("fifth_digits").list.arg_max() + pl.col("sixth_digits").list.arg_max() + pl.col("seventh_digits").list.arg_max() + pl.col("eigth_digits").list.arg_max() + pl.col("nineth_digits").list.arg_max() + pl.col("tenth_digits").list.arg_max() + pl.col("eleventh_digits").list.arg_max() + 11
+        ).list.explode().cum_max().implode().over("index").alias("twelveth_digits")
     ).with_columns(
         pl.concat_str(
             pl.col("first_digits").list.max(),
             pl.col("second_digits").list.max(),
-        ).cast(pl.Int32).alias("joltage")
+            pl.col("third_digits").list.max(),
+            pl.col("fourth_digits").list.max(),
+            pl.col("fifth_digits").list.max(),
+            pl.col("sixth_digits").list.max(),
+            pl.col("seventh_digits").list.max(),
+            pl.col("eigth_digits").list.max(),
+            pl.col("nineth_digits").list.max(),
+            pl.col("tenth_digits").list.max(),
+            pl.col("eleventh_digits").list.max(),
+            pl.col("twelveth_digits").list.max(),
+        ).cast(pl.Int64).alias("joltage")
     ).sort("index").collect()
 
     console.print(df)
     result = df.select(pl.sum("joltage").cast(pl.String)).item()
 
     return result
-
-    # df = pl.DataFrame(
-    #     {"line": input_data}
-    # ).with_row_index().lazy().with_columns(
-    #     pl.col("line").str.split("").cast(pl.List(pl.Int32)).alias("digits")
-    # ).group_by("index", "digits").agg(
-    #     pl.col("digits").list.slice(0, pl.col("digits").list.len() - 1).list.explode().cum_max().implode().alias("first_digits"),
-    # ).group_by("index", "digits", "first_digits").agg(
-    #     pl.col("digits").list.slice(pl.col("first_digits").list.arg_max() + 1).list.explode().cum_max().implode().alias("second_digits")
-    # ).group_by("index", "digits", "first_digits", "second_digits").agg(
-    #     pl.col("digits").list.slice(pl.col("first_digits").list.arg_max() + 1).list.explode().cum_max().implode().alias("second_digits")
-    # ).group_by("index", "digits", "first_digits").agg(
-    #     pl.col("digits").list.slice(pl.col("first_digits").list.arg_max() + 1).list.explode().cum_max().implode().alias("second_digits")
-    # ).group_by("index", "digits", "first_digits").agg(
-    #     pl.col("digits").list.slice(pl.col("first_digits").list.arg_max() + 1).list.explode().cum_max().implode().alias("second_digits")
-    # ).group_by("index", "digits", "first_digits").agg(
-    #     pl.col("digits").list.slice(pl.col("first_digits").list.arg_max() + 1).list.explode().cum_max().implode().alias("second_digits")
-    # ).group_by("index", "digits", "first_digits").agg(
-    #     pl.col("digits").list.slice(pl.col("first_digits").list.arg_max() + 1).list.explode().cum_max().implode().alias("second_digits")
-    # ).group_by("index", "digits", "first_digits").agg(
-    #     pl.col("digits").list.slice(pl.col("first_digits").list.arg_max() + 1).list.explode().cum_max().implode().alias("second_digits")
-    # ).group_by("index", "digits", "first_digits").agg(
-    #     pl.col("digits").list.slice(pl.col("first_digits").list.arg_max() + 1).list.explode().cum_max().implode().alias("second_digits")
-    # ).group_by("index", "digits", "first_digits").agg(
-    #     pl.col("digits").list.slice(pl.col("first_digits").list.arg_max() + 1).list.explode().cum_max().implode().alias("second_digits")
-    # ).group_by("index", "digits", "first_digits").agg(
-    #     pl.col("digits").list.slice(pl.col("first_digits").list.arg_max() + 1).list.explode().cum_max().implode().alias("second_digits")
-    # ).group_by("index", "digits", "first_digits").agg(
-    #     pl.col("digits").list.slice(pl.col("first_digits").list.arg_max() + 1).list.explode().cum_max().implode().alias("second_digits")
-    # ).with_columns(
-    #     pl.concat_str(
-    #         pl.col("first_digits").list.max(),
-    #         pl.col("second_digits").list.max(),
-    #     ).cast(pl.Int32).alias("joltage")
-    # ).sort("index").collect()
-
-    # console.print(df)
-    # result = df.select(pl.sum("joltage").cast(pl.String)).item()
-
-    return "0"
 
 
 def main(submit: bool = False):
@@ -123,11 +153,13 @@ def main(submit: bool = False):
     # print(test_input)
 
     for idx, part in enumerate(part_functions):
+        console.print()
+        console.print(f"Checking part {idx+1}")
         test_result = part(test_input)
         console.print(f"Part {idx+1} Test Result: {test_result}")
 
-        result = part(day_input)
-        console.print(f"Part {idx+1} Result: {result}")
+        # result = part(day_input)
+        # console.print(f"Part {idx+1} Result: {result}")
 
         if submit:
             submission_result = submit_puzzle_answer(YEAR, DAY, idx+1, result)
