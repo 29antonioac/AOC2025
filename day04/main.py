@@ -3,7 +3,6 @@ from collections import defaultdict, namedtuple
 from enum import Enum
 from pathlib import Path
 
-import polars as pl
 import typer
 from elf import (
     get_puzzle_input,
@@ -14,11 +13,6 @@ from elf import (
 )
 from elf.helpers import parse_input, read_input, timer
 from rich.console import Console
-
-pl.Config.set_tbl_rows(20)
-pl.Config.set_tbl_cols(20)
-pl.Config.set_fmt_str_lengths(200)
-pl.Config.set_fmt_table_cell_list_len(20)
 
 YEAR = 2025
 DAY = int(Path(__file__).parent.name.split("day")[-1])
