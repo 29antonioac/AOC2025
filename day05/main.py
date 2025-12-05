@@ -79,27 +79,34 @@ def part1(input_data: tuple[list[str], list[str]]) -> str:
 def part2(input_data: tuple[list[str], list[str]]) -> str:
     fresh_ingredients, available_ingredients = input_data
 
-    console.print(fresh_ingredients)
-    # df_fresh = (
-    #     pl.DataFrame({"id": fresh_ingredients}).lazy()
-    #     .select(
-    #         pl.col("id").str.split("-").cast(pl.List(pl.Int64)).alias("id_range")
-    #     )
-    #     .with_columns(
-    #         len=pl.col("id_range").list.get(-1) - pl.col("id_range").list.get(0) + 1
-    #     )
-    #     .collect()
-    # )
+    sorted_ingredients = sorted(
+        [i for i in fresh_ingredients if i], key=lambda x: int(x.partition("-")[0])
+    )
 
-    # console.print(df_fresh)
+    # console.print(sorted_ingredients)
 
-    # df_all_fresh = (
-    #     df_fresh
-    #     # .collect()
-    # )
-    # console.print(df_all_fresh)
+    all_ranges = []
+    all_sum = 0
+    for r in sorted_ingredients:
+        lower_bound, _, upper_bound = r.partition("-")
+        
+        lower_bound = int(lower_bound)
+        upper_bound = int(upper_bound)
+        # If there's no overlap, add a new range
+        if not all_ranges or all_ranges[-1][1] < lower_bound:
+            all_ranges.append((lower_bound, upper_bound))
+        # If there is overlap, enlarge latest range just with the new portion of range
+        else:
+            lower_bound = all_ranges[-1][0]
+            upper_bound = max(all_ranges[-1][1], upper_bound)
+            all_ranges[-1] = (lower_bound, upper_bound)
 
-    result = "0"
+    console.print(all_ranges)
+
+    result = sum((
+        r[-1] - r[0] + 1
+        for r in all_ranges
+    ))
 
     return result
 
