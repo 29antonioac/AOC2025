@@ -95,9 +95,9 @@ def part2(input_data: list[str]) -> str:
                     # Splitting on the left creates a new path
                     # Current path updates when splitting on the right
                     if col_to_check - 1 >= 0:
-                        new_paths.append(path + [(row_to_check + 1, col_to_check + 1)])
+                        new_paths.append(path + [(row_to_check + 1, col_to_check - 1)])
                     if col_to_check + 1 < len(input_data[0]):
-                        path.append((row_to_check + 1, col_to_check - 1))
+                        path.append((row_to_check + 1, col_to_check + 1))
                 else:
                     raise ValueError(f"Unexpected character {input_data[row_to_check][col_to_check]} at {(row_to_check, col_to_check)}")
             
