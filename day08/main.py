@@ -39,54 +39,6 @@ def read_input(path: Path) -> str:
         )
     return path.read_text(encoding="utf-8")
 
-# def parse_input_part1(input_data: str) -> list[str]:
-#     return [l_clean for l in re.sub(" +", " ", input_data.strip()).split("\n") if (l_clean := l.strip())]
-
-# def parse_input_part2(input_data: str) -> list[str]:
-#     return [l_clean for l in input_data.replace(" ", "0").split("\n") if (l_clean := l.strip())]
-
-
-# @timer()
-# def part1(input_data: str) -> str:
-#     df = pl.read_csv(
-#         StringIO(input_data),
-#         has_header=False,
-#     )
-
-#     # console.print(df)
-
-#     df_1nn = (
-#         df
-#         .with_row_index()
-#         .with_columns(
-#             pds.query_knn_ptwise(
-#                 pl.col("column_1"),
-#                 pl.col("column_2"),
-#                 pl.col("column_3"),
-#                 index="index",
-#                 k=1,
-#                 dist="sql2",
-#                 parallel=True,
-#                 max_bound=999999999,
-#                 return_dist=True,
-#             ).alias("neighbours")
-#         )
-#         .with_columns(
-#             pl.col("neighbours").struct.field("idx").list.get(-1).alias("closest"),
-#             pl.col("neighbours").struct.field("dist").list.get(-1).alias("distance")
-#         )
-#         .sort("distance")
-#     )
-
-#     if df_1nn.select(
-#         pl.col("neighbours").struct.field("idx").list.len().min()
-#     ).item() == 1:
-#         raise ValueError("Some point is missing a neighbour within max_bound")
-
-#     console.print(df_1nn)
-    
-#     result = "0"
-#     return str(result)
 
 class Point:
     def __init__(self, coordinates: str):
