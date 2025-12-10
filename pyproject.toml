@@ -10,6 +10,7 @@ dependencies = [
     "mypy>=1.19.0",
     "numpy>=2.3.5",
     "polars>=1.35.2",
+    "pulp>=3.3.0",
     "ruff>=0.14.8",
     "rust-just>=1.43.1",
     "scipy>=1.16.3",
