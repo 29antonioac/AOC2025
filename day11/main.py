@@ -1,5 +1,5 @@
 import os
-from collections import deque
+from collections import defaultdict, deque
 from pathlib import Path
 
 import typer
@@ -42,40 +42,37 @@ class Graph:
             self.nodes[source_label] = destination_nodes
 
     def find_all_paths(
-        self, initial_state_label: str = "you", final_state_label: str = "out",
-        max_depth: int = MAX_DEPTH
+        self, initial_state_label: str = "you", final_state_label: str = "out"
     ):
-        # Implement BFS
-        solutions = 0
+        # Implement BFS with path counting
+        paths_to = defaultdict(int)
+        paths_to[(initial_state_label, 0)] = 1
+        explored = set()
 
         q: deque[Node] = deque()
-        initial_state = Node(initial_state_label, 0)
+        initial_state = Node(initial_state_label)
         q.append(initial_state)
 
-        solution_depth = None
         while len(q) > 0:
             v = q.popleft()
-            if v.label == final_state_label:
-                solutions += 1
-                if solution_depth is not None and v.parents != solution_depth:
-                    console.print(
-                        f"Found a solution of different depth {v.parents} vs {solution_depth}"
-                    )
-                solution_depth = v.parents
-            elif (v.label not in self.nodes) or (
-                solution_depth is not None
-                and v.parents > max(solution_depth, max_depth)
-            ):
-                console.print(f"Pruning at depth {v.parents} for node {v.label}")
-            else:
-                # console.print(f"Exploring depth {v.parents}")
-                for dest_label in self.nodes[v.label]:
-                    new_node = Node(dest_label, v.parents + 1)
-                    q.append(new_node)
+            if (v.label, v.parents) in explored:
+                continue
+            explored.add((v.label, v.parents))
+            
+            if (v.label not in self.nodes):
+                continue
+            
+            # console.print(f"Exploring depth {v.parents}")
+            for dest_label in self.nodes[v.label]:
+                paths_to[(dest_label, v.parents + 1)] += paths_to[(v.label, v.parents)]
+                if (dest_label, v.parents + 1) not in explored:
+                    q.append(Node(dest_label, v.parents + 1))
+        # Sum all paths that reached the final state at any depth
+        total_paths = sum(count for (label, depth), count in paths_to.items() if label == final_state_label)
         console.print(
-            f"Found {solutions} solutions from {initial_state_label} to {final_state_label}"
+            f"Found {total_paths} solutions from {initial_state_label} to {final_state_label}"
         )
-        return solutions
+        return total_paths
 
 
 def read_input(path: Path) -> str:
@@ -104,21 +101,13 @@ def part1(input_data: str) -> str:
 def part2(input_data: str) -> str:
     graph = parse_input(input_data)
 
-    # result_svr_fft = graph.find_all_paths("svr", "fft", depth_buffer=2)
-    result_svr_fft = 17396 # Hardcoded based on prior knowledge
-    result_fft_dac = graph.find_all_paths("fft", "dac", max_depth=17)
-    # result_fft_dac = 1
-    # result_dac_out = graph.find_all_paths("dac", "out", depth_buffer=0)
-    result_dac_out = 4530 # Hardcoded based on prior knowledge
-
-    # result_fft_svr = graph.find_all_paths("fft", "svr")
-    # result_dac_fft = graph.find_all_paths("dac", "fft")
-    # result_out_dac = graph.find_all_paths("out", "dac")
+    result_svr_fft = graph.find_all_paths("svr", "fft")
+    result_fft_dac = graph.find_all_paths("fft", "dac")
+    result_dac_out = graph.find_all_paths("dac", "out")
 
     result = str(
         (
             result_svr_fft * result_fft_dac * result_dac_out
-            # + (result_fft_svr * result_dac_fft * result_out_dac)
         )
     )
 
